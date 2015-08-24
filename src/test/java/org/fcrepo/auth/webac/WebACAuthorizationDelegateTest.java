@@ -10,22 +10,28 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.modeshape.jcr.api.Session;
 
+/**
+ * Unit test for the WebAC Authorization Delegate.
+ *
+ * @author Peter Eichman
+ * @date Aug 24, 2015
+ */
 public class WebACAuthorizationDelegateTest {
 
-	private WebACAuthorizationDelegate webacAD;
-	
+    private WebACAuthorizationDelegate webacAD;
+
     @Mock
     private Session mockSession;
-	
-	@Before
-	public void setUp() {
-		webacAD = new WebACAuthorizationDelegate();
-	}
-	
-	@Test
-	public void test() {
-		assertFalse(webacAD.rolesHavePermission(mockSession, "/fake/path", getFakeActions(), getFakeRoles()));
-	}
+
+    @Before
+    public void setUp() {
+        webacAD = new WebACAuthorizationDelegate();
+    }
+
+    @Test
+    public void test() {
+        assertFalse(webacAD.rolesHavePermission(mockSession, "/fake/path", getFakeActions(), getFakeRoles()));
+    }
 
     private static String[] getFakeActions() {
         final String[] fakeActions =  new String[2];
