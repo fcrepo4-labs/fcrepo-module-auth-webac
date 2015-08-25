@@ -28,9 +28,6 @@ import java.net.URI;
  */
 public class URIConstants {
 
-    private URIConstants() {
-    }
-
     /**
      * Namespace for the W3C WebAC vocabulary.
      */
@@ -80,4 +77,7 @@ public class URIConstants {
      * Control access mode.
      */
     public static final URI WEBAC_MODE_CONTROL = URI.create(WEBAC_MODE_CONTROL_VALUE);
+
+    private URIConstants() {
+    }
 }
