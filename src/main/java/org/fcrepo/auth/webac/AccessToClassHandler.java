@@ -78,7 +78,7 @@ public interface AccessToClassHandler {
      * @param objectType
      * @return List of ACL objects for the objectType
      */
-    List<WebAclAuthorization> getAuthorizationforType(final RDF objectType);
+    List<WebACAuthorization> getAuthorizationforType(final RDF objectType);
 
     /**
      * Remove all ACLs for objectType.
