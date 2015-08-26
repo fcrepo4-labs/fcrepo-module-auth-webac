@@ -78,13 +78,13 @@ public interface AccessToClassHandler {
      * @param objectType
      * @return List of ACL objects for the objectType
      */
-    List<FedoraWebAcl> getACLforType(final RDF objectType);
+    List<WebAclAuthorization> getAuthorizationforType(final RDF objectType);
 
     /**
      * Remove all ACLs for objectType.
      * @param objectType
      */
-    void removeACLforType(final RDF objectType);
+    void removeAuthorizationforType(final RDF objectType);
 
 
 }
