@@ -21,16 +21,14 @@ import java.util.Set;
 import com.hp.hpl.jena.vocabulary.RDF;
 
 /**
- * AccessToClassHandler defines the interface for handling AccessToClass ACLs
- * that are managed in a pre-configured location defined by the
- * property fcrepo.auth.webac.location
+ * AuthorizationHandler defines the interface for configuring and retrieving
+ * WebAC authorization of fedora objects.
  *
  * @author mohideen
  * @date 8/25/15.
  */
-public interface AccessToClassHandler {
+public interface AuthorizationHandler {
 
-    String ACCESS_TO_CLASS_ACL_LOCATION = "fcrepo.auth.webac.location";
 
     /**
      * Get allowed access modes for agent based on ACLs at the configured
@@ -39,7 +37,7 @@ public interface AccessToClassHandler {
      * @param agent
      * @return Set of allowed modes
      */
-    Set<URI> getModes(final Set<RDF> objectTypes, final String agent);
+    Set<URI> getModes(final String aclPath, final String agent);
 
     /**
      * Set allowed access modes for objectType with specified set of agents.
