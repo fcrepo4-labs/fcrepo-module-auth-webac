@@ -40,12 +40,4 @@ public interface AuthorizationHandler {
      */
     Set<WebACAuthorization> getAuthorizations(final String aclPath, final String resourcePath, final Set<RDF> objectTypes, final String agent);
 
-    /**
-     * Get authorizations that have both accessTo
-     * @param resource Resource requested by user.
-     * @param agent (user or group) (ACL: agent)
-     * @return Set of applicable authorizations for the agent on the resource.
-     */
-    Set<WebACAuthorization> getAuthorizations(final FedoraResource resource, final String agent);
-    
 }
