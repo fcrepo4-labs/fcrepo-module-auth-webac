@@ -16,8 +16,17 @@
 package org.fcrepo.auth.webac;
 
 import static org.fcrepo.auth.webac.URIConstants.FOAF_AGENT_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_HAS_ACL;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_APPEND;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_READ;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_WRITE;
 
+import java.net.URI;
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.jcr.Session;
@@ -33,6 +42,7 @@ import org.slf4j.LoggerFactory;
  * control lists.
  *
  * @author Peter Eichman
+ * @author acoburn
  * @since Aug 24, 2015
  */
 public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelegate {
@@ -60,10 +70,45 @@ public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelega
 
     };
 
+    private static final Map<String, URI> actionMap;
+
+    static {
+        Map<String, URI> map = new HashMap<>();
+        map.put("GET", WEBAC_MODE_READ);
+        map.put("POST", WEBAC_MODE_APPEND);
+        map.put("PUT", WEBAC_MODE_WRITE);
+        map.put("DELETE", WEBAC_MODE_WRITE);
+        map.put("PATCH", WEBAC_MODE_WRITE);
+        map.put("OPTIONS", WEBAC_MODE_READ);
+        actionMap = Collections.unmodifiableMap(map);
+    }
+
     @Override
     public boolean rolesHavePermission(final Session userSession, final String absPath,
             final String[] actions, final Set<String> roles) {
-        final boolean permit = false;
+
+        // This is not correct -- we should get it from the container or header, etc
+        final String agent = userSession.getUserID();
+
+        final List<URI> actionURIs = actionsAsURIs(actions);
+
+        final Optional<URI> effectiveACL = getEffectiveAcl(new FedoraResourceImpl(userSession.getNode(absPath)));
+
+        final AuthorizationHandler authHandler = new AuthorizationHandlerImpl();
+
+        // The getAuthorizations(URI, String, String) signature doesn't exist
+        final Optional<boolean> userPermission = effectiveACL
+                    .map(x -> authHandler.getAuthorizations(x, absPath, agent))
+                    .map(x -> isPermitted(actionURIs, x));
+
+        // The getAuthorizations(URI, String, Set<String>) signature doesn't exist
+        final Optional<boolean> groupPermission = effectiveACL
+                    .map(x -> authHandler.getAuthorizations(x, absPath, roles))
+                    .map(x -> isPermitted(actionURIs, x));
+
+        final boolean permit = userPermission
+                                .orElse(groupPermission.orElse(false));
+
         LOGGER.debug("Request for actions: {}, on path: {}, with roles: {}. Permission={}",
                 actions,
                 absPath,
@@ -83,4 +128,42 @@ public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         return new FedoraWebACUserSecurityContext(userPrincipal, this);
     }
 
+    /**
+     * Given a set of WebACAuthorization objects, determine if the given modes are allowed.
+     *
+     * NOTE: Its use above should be replaced with a curried version of this function.
+     */
+    private boolean isPermitted(final Set<URI> modes, final Set<WebACAuthorization> acl) {
+        return acl.stream()
+                  .map(WebACAuthorization::getModes)
+                  .flatMap(Collection::stream)
+                  .distinct()
+                  .collect(Collectors.toList())
+                  .containsAll(modes);
+    }
+
+    /**
+     * A convenience method for converting an array of actions to a List<URI> structure.
+     */
+    private List<URI> actionsAsUris(final String[] actions) {
+        final List<URI> uris = new ArrayList<>();
+        for (final String a : actions) {
+            uris.add(actionsMap.get(a));
+        }
+        return uris;
+    }
+
+    /**
+     * Find the effective ACL as a URI. It may or may not exist, and it may or may
+     * not be a fedora resource.
+     */
+    private Optional<URI> getEffectiveAcl(final FedoraResource resource) {
+        if (resource.hasProperty(WEBAC_HAS_ACL)) {
+            return Optional<URI>.of(new URI(resource.getProperty(WEBAC_HAS_ACL).getString()));
+        } else if (resource.getNode().getDepth() == 0) {
+            return Optional<URI>.empty();
+        } else {
+            return getEffectiveAcl(resource.getContainer());
+        }
+    }
 }
