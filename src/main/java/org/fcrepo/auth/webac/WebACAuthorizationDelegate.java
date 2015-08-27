@@ -17,18 +17,17 @@ package org.fcrepo.auth.webac;
 
 import static java.util.Collections.unmodifiableMap;
 import static org.fcrepo.auth.webac.URIConstants.FOAF_AGENT_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_CONTROL;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_HAS_ACL;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_APPEND;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_READ;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_WRITE;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.URI;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.jcr.Session;
