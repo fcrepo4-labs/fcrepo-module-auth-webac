@@ -49,49 +49,78 @@ public interface AuthorizationHandler {
     Set<WebACAuthorization> getAuthorizations(final FedoraResource resource, final String agent);
 
     /**
-     * Set allowed access modes for objectType with specified set of agents.
-     * @param objectType
-     * @param accessModes
-     * @param agents
+     * Add allowed access modes for resource with specified set of agents.
+     * @param aclPath Path of existing acl resource
+     * @param resourcePath Path of fedora resource (ACL: accessTo)
+     * @param accessModes Modes of access to be allowed. (ACL: mode)
+     * @param agents (user or group) (ACL: agent)
      */
-    void setModes(final RDF objectType, final Set<URI> accessModes, final Set<String> agents);
+    void addAuthorizations(final String aclPath, final String resourcePath, final Set<URI> accessModes, final Set<String> agents);
 
     /**
-     * Set allowed access modes for objectType with specified agent.
-     * @param objectType
-     * @param accessModes
-     * @param agent
+     * Add allowed access modes for objectTypes with specified set of agents.
+     * @param aclPath Path of existing acl resource
+     * @param objectTypes rdf:type values of the resource. (ACL: accessToClass)
+     * @param accessModes Modes of access to be allowed. (ACL: mode)
+     * @param agents (user or group) (ACL: agent)
      */
-    void setModes(final RDF objectType, final Set<URI> accessModes, final String agent);
+    void addAuthorizations(final String aclPath, final Set<RDF> objectTypes, final Set<URI> accessModes, final Set<String> agents);
 
     /**
-     * Set allowed access mode for objectType with specified set of agents.
-     * @param objectType
-     * @param accessMode
-     * @param agents
+     * Replace allowed access modes for resource with specified set of agents.
+     * @param aclPath Path of existing acl resource
+     * @param resourcePath Path of fedora resource (ACL: accessTo)
+     * @param accessModes Modes of access to be allowed. (ACL: mode)
+     * @param agents (user or group) (ACL: agent)
      */
-    void setMode(final RDF objectType, final URI accessMode, final Set<String> agents);
+    void replaceAuthorizations(final String aclPath, final String resourcePath, final Set<URI> accessModes, final Set<String> agents);
 
     /**
-     * Set allowed access mode for objectType with specified agent.
-     * @param objectType
-     * @param accessMode
-     * @param agent
+     * Replace allowed access modes for objectTypes with specified set of agents.
+     * @param aclPath Path of existing acl resource
+     * @param objectTypes rdf:type values of the resource. (ACL: accessToClass)
+     * @param accessModes Modes of access to be allowed. (ACL: mode)
+     * @param agents (user or group) (ACL: agent)
      */
-    void setMode(final RDF objectType, final URI accessMode, final String agent);
+    void replaceAuthorizations(final String aclPath, final Set<RDF> objectTypes, final Set<URI> accessModes, final Set<String> agents);
 
     /**
-     * Get all ACLs for objectType.
-     * @param objectType
-     * @return List of ACL objects for the objectType
+     * Remove allowed access modes for objectTypes with specified set of agents.
+     * @param aclPath Path of existing acl resource
+     * @param resourcePath Path of fedora resource (ACL: accessTo)
+     * @param agents (user or group) (ACL: agent)
      */
-    List<WebACAuthorization> getAuthorizationforType(final RDF objectType);
+    void removeAuthorizations(final String aclPath, final String resourcePath, final Set<String> agents);
 
     /**
-     * Remove all ACLs for objectType.
-     * @param objectType
+     * Remove allowed access modes for objectTypes with specified set of agents.
+     * @param aclPath Path of existing acl resource
+     * @param objectTypes rdf:type values of the resource. (ACL: accessToClass)
+     * @param agents (user or group) (ACL: agent)
      */
-    void removeAuthorizationforType(final RDF objectType);
+    void removeAuthorizations(final String aclPath, final Set<RDF> objectTypes, final Set<String> agents);
+
+    /**
+     * Remove allowed access modes for objectTypes with specified set of agents.
+     * @param aclPath Path of existing acl resource
+     * @param resourcePath Path of fedora resource (ACL: accessTo)
+     */
+    void removeResourceAuthorizations(final String aclPath, final String resourcePath);
+
+    /**
+     * Remove allowed access modes for objectTypes with specified set of agents.
+     * @param aclPath Path of existing acl resource
+     * @param objectTypes rdf:type values of the resource. (ACL: accessToClass)
+     */
+    void removeTypeAuthorizations(final String aclPath, final Set<RDF> objectTypes);
+
+    /**
+     * Remove allowed access modes for objectTypes with specified set of agents.
+     * @param aclPath Path of existing acl resource
+     * @param agent (user or group) (ACL: agent)
+     */
+    void removeAgentAuthorizations(final String aclPath, final String agent);
+
 
 
 }
