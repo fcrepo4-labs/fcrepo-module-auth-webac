@@ -31,13 +31,22 @@ public interface AuthorizationHandler {
 
 
     /**
-     * Get allowed access modes for agent based on ACLs at the configured
-     * location that have matching objectTypes
-     * @param objectTypes
-     * @param agent
-     * @return Set of allowed modes
+     * Get authorizations that have both accessTo
+     * @param aclPath Path of acl to get authorizations.
+     * @param resourcePath Path of the resource requested by user. (ACL: accessTo)
+     * @param objectTypes rdf:type values of the resource. (ACL: accessToClass)
+     * @param agent (user or group) (ACL: agent)
+     * @return Set of applicable authorizations for the agent on the resource from the specified acl path.
      */
-    Set<URI> getModes(final String aclPath, final String agent);
+    Set<WebACAuthorization> getAuthorizations(final String aclPath, final String resourcePath, final Set<RDF> objectTypes, final String agent);
+
+    /**
+     * Get authorizations that have both accessTo
+     * @param resource Resource requested by user.
+     * @param agent (user or group) (ACL: agent)
+     * @return Set of applicable authorizations for the agent on the resource.
+     */
+    Set<WebACAuthorization> getAuthorizations(final FedoraResource resource, final String agent);
 
     /**
      * Set allowed access modes for objectType with specified set of agents.
