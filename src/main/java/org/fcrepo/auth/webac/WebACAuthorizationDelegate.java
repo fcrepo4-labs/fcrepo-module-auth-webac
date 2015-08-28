@@ -17,19 +17,23 @@ package org.fcrepo.auth.webac;
 
 import static java.util.Collections.unmodifiableMap;
 import static org.fcrepo.auth.webac.URIConstants.FOAF_AGENT_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_HAS_ACL;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESS_CONTROL;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_APPEND;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_READ;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_WRITE;
+import static org.slf4j.LoggerFactory.getLogger;
+import static java.util.Collections.unmodifiableMap;
 
 import java.net.URI;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.jcr.Session;
 
 //import org.fcrepo.auth.common.FedoraUserSecurityContext;
@@ -49,6 +53,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @since Aug 24, 2015
  */
 public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelegate {
+
+    public static final String EVERYONE_NAME = "EVERYONE";
 
     /**
      * Class-level logger.
