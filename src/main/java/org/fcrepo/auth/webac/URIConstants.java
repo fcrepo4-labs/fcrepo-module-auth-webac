@@ -110,9 +110,15 @@ public class URIConstants {
     public static final URI WEBAC_ACCESS_CONTROL = URI.create(WEBAC_ACCESS_CONTROL_VALUE);
 
     /**
+     * FOAF Namespace
+     */
+    public static final String FOAF_NAMESPACE_VALUE = "http://xmlns.com/foaf/0.1/";
+    public static final URI FOAF_NAMESPACE = URI.create(FOAF_NAMESPACE_VALUE);
+
+    /**
      * FOAF Agent
      */
-    public static final String FOAF_AGENT_VALUE = "http://xmlns.com/foaf/0.1/Agent";
+    public static final String FOAF_AGENT_VALUE = FOAF_NAMESPACE_VALUE + "Agent";
     public static final URI FOAF_AGENT = URI.create(FOAF_AGENT_VALUE);
 
     private URIConstants() {
