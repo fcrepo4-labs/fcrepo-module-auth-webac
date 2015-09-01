@@ -15,11 +15,14 @@
  */
 package org.fcrepo.auth.webac;
 
+import java.security.Principal;
 import java.util.Set;
 
 import javax.jcr.Session;
 
+import org.fcrepo.auth.common.FedoraUserSecurityContext;
 import org.fcrepo.auth.roles.common.AbstractRolesAuthorizationDelegate;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +51,12 @@ public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelega
                 permit);
 
         return permit;
+    }
+
+
+    @Override
+    public FedoraUserSecurityContext getFedoraUserSecurityContext(final Principal userPrincipal) {
+        return new FedoraWebACUserSecurityContext(userPrincipal, this);
     }
 
 }
