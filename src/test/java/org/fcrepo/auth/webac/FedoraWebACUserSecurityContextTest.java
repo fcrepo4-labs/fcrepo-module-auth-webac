@@ -34,7 +34,7 @@ import org.mockito.Mock;
 
 /**
  * @author mohideen
- * @date 9/1/15.
+ * @since 9/1/15.
  */
 public class FedoraWebACUserSecurityContextTest extends FedoraUserSecurityContextTest {
 
@@ -47,7 +47,7 @@ public class FedoraWebACUserSecurityContextTest extends FedoraUserSecurityContex
 
     @Test
     public void testHasRole() {
-        FedoraUserSecurityContext context = new FedoraWebACUserSecurityContext(this.principal, this.fad);
+        final FedoraUserSecurityContext context = new FedoraWebACUserSecurityContext(this.principal, this.fad);
         Assert.assertTrue(context.hasRole(WEBAC_MODE_READ_VALUE));
         Assert.assertTrue(context.hasRole(WEBAC_MODE_WRITE_VALUE));
         Assert.assertTrue(context.hasRole(WEBAC_MODE_APPEND_VALUE));
