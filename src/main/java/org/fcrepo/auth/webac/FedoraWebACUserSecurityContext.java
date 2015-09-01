@@ -15,13 +15,16 @@
  */
 package org.fcrepo.auth.webac;
 
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_APPEND_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_CONTROL_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_READ_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_WRITE_VALUE;
+
 import java.security.Principal;
-import java.util.Arrays;
 
 import org.fcrepo.auth.common.FedoraAuthorizationDelegate;
 import org.fcrepo.auth.common.FedoraUserSecurityContext;
 
-import org.modeshape.jcr.ExecutionContext;
 import org.modeshape.jcr.value.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,29 +63,16 @@ public class FedoraWebACUserSecurityContext extends FedoraUserSecurityContext {
     public final boolean hasRole(final String roleName) {
         // Under this custom PEP regime, all users have modeshape read and write
         // roles.
-        if ("http://www.w3.org/ns/auth/acl#Read".equals(roleName)) {
+        if (WEBAC_MODE_READ_VALUE.equals(roleName)) {
             return true;
-        } else if ("http://www.w3.org/ns/auth/acl#Write".equals(roleName)) {
+        } else if (WEBAC_MODE_WRITE_VALUE.equals(roleName)) {
             return true;
-        } else if ("http://www.w3.org/ns/auth/acl#Append".equals(roleName)) {
+        } else if (WEBAC_MODE_APPEND_VALUE.equals(roleName)) {
             return true;
-        } else if ("http://www.w3.org/ns/auth/acl#Control".equals(roleName)) {
+        } else if (WEBAC_MODE_CONTROL_VALUE.equals(roleName)) {
             return true;
         }
         return false;
-    }
-
-
-    /**
-     * Get the user principal associated with this context.
-     *
-     * @return the user principal associated with this security context
-     */
-    public Principal getEffectiveUserPrincipal() {
-        if (isLoggedIn() && this.userPrincipal != null) {
-            return this.userPrincipal;
-        }
-        return fad.getEveryonePrincipal();
     }
 
     /*
