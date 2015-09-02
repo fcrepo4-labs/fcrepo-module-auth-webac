@@ -15,14 +15,19 @@
  */
 package org.fcrepo.auth.webac;
 
+import static org.fcrepo.auth.common.FedoraAuthorizationDelegate.FEDORA_USER_PRINCIPAL;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.when;
 
+import java.security.Principal;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.modeshape.jcr.api.Session;
 
 /**
@@ -31,6 +36,7 @@ import org.modeshape.jcr.api.Session;
  * @author Peter Eichman
  * @since Aug 24, 2015
  */
+@RunWith(MockitoJUnitRunner.class)
 public class WebACAuthorizationDelegateTest {
 
     private WebACAuthorizationDelegate webacAD;
@@ -38,14 +44,23 @@ public class WebACAuthorizationDelegateTest {
     @Mock
     private Session mockSession;
 
+    @Mock
+    private Principal mockPrincipal;
+
+    private static final String USER = "fakeUser";
+    private static final String PATH = "/fake/path";
+
     @Before
     public void setUp() {
+        when(mockSession.getAttribute(FEDORA_USER_PRINCIPAL)).thenReturn(mockPrincipal);
+        when(mockPrincipal.getName()).thenReturn(USER);
         webacAD = new WebACAuthorizationDelegate();
     }
 
+
     @Test
     public void test() {
-        assertFalse(webacAD.rolesHavePermission(mockSession, "/fake/path", getFakeActions(), getFakeRoles()));
+        assertFalse(webacAD.rolesHavePermission(mockSession, PATH, getFakeActions(), getFakeRoles()));
     }
 
     private static String[] getFakeActions() {
