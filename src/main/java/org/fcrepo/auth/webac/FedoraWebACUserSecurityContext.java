@@ -87,21 +87,7 @@ public class FedoraWebACUserSecurityContext extends FedoraUserSecurityContext {
                                  final String... actions) {
 
         LOGGER.debug("Verifying hasPermission on path: {} for: {}", absPath, String.join(",", actions));
-
-        if (!isLoggedIn()) {
-            return false;
-        }
-
-        // this permission is required for login
-        if (absPath == null) {
-            return actions.length == 1 && "read".equals(actions[0]);
-        }
-
-        // delegate
-        if (fad != null) {
-            return fad.hasPermission(context.getSession(), absPath, actions);
-        }
-        return false;
+        return super.hasPermission(context, absPath, actions);
     }
 
 
