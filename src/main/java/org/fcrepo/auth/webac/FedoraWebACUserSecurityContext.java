@@ -25,7 +25,6 @@ import java.security.Principal;
 import org.fcrepo.auth.common.FedoraAuthorizationDelegate;
 import org.fcrepo.auth.common.FedoraUserSecurityContext;
 
-import org.modeshape.jcr.value.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,21 +73,5 @@ public class FedoraWebACUserSecurityContext extends FedoraUserSecurityContext {
         }
         return false;
     }
-
-    /*
-     * (non-Javadoc)
-     * @see
-     * org.modeshape.jcr.security.AdvancedAuthorizationProvider#hasPermission
-     * (org.modeshape.jcr.security.AdvancedAuthorizationProvider.Context,
-     * org.modeshape.jcr.value.Path, java.lang.String[])
-     */
-    @Override
-    public boolean hasPermission(final Context context, final Path absPath,
-                                 final String... actions) {
-
-        LOGGER.debug("Verifying hasPermission on path: {} for: {}", absPath, String.join(",", actions));
-        return super.hasPermission(context, absPath, actions);
-    }
-
 
 }
