@@ -100,8 +100,11 @@ public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelega
     public boolean rolesHavePermission(final Session userSession, final String absPath,
             final String[] actions, final Set<String> roles) {
 
-        // This is not correct -- we should get it from the container or header, etc
-        final String agent = userSession.getUserID();
+        // use the user principal as the WebAC agent
+        // if there is no logged-in user, the user principal will be the EVERYONE principal, so
+        // the agent will be FOAF_AGENT_VALUE (i.e., the URI string for foaf:Agent)
+        final Principal userPrincipal = (Principal) userSession.getAttribute(FEDORA_USER_PRINCIPAL);
+        final String agent = userPrincipal.getName();
 
         try {
             final Map<String, List<String>> resourceAccessRoles =
