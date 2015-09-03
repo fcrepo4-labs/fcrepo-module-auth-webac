@@ -46,6 +46,11 @@
       <artifactId>fcrepo-auth-roles-common</artifactId>
       <version>4.3.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-core</artifactId>
+    </dependency>
+
 
     <!-- test gear -->
     <dependency>
@@ -60,6 +65,11 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-arq</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.glassfish.grizzly</groupId>
       <artifactId>grizzly-http-server</artifactId>
