@@ -15,12 +15,12 @@
  */
 package org.fcrepo.auth.webac;
 
+import static java.util.Collections.unmodifiableMap;
 import static org.fcrepo.auth.webac.URIConstants.FOAF_AGENT_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_APPEND;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_CONTROL;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_READ;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
-import static java.util.Collections.unmodifiableMap;
 
 import java.net.URI;
 import java.security.Principal;
@@ -38,6 +38,8 @@ import org.fcrepo.auth.common.FedoraUserSecurityContext;
 import org.fcrepo.auth.roles.common.AbstractRolesAuthorizationDelegate;
 import org.fcrepo.auth.roles.common.AccessRolesProvider;
 import org.fcrepo.kernel.api.services.NodeService;
+
+import org.modeshape.jcr.ModeShapePermissions;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -84,12 +86,20 @@ public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelega
 
     static {
         final Map<String, URI> map = new HashMap<>();
-        map.put("GET", WEBAC_MODE_READ);
-        map.put("POST", WEBAC_MODE_APPEND);
-        map.put("PUT", WEBAC_MODE_WRITE);
-        map.put("DELETE", WEBAC_MODE_WRITE);
-        map.put("PATCH", WEBAC_MODE_WRITE);
-        map.put("OPTIONS", WEBAC_MODE_READ);
+        // WEBAC_MODE_READ Permissions
+        map.put(ModeShapePermissions.READ, WEBAC_MODE_READ);
+        // WEBAC_MODE_WRITE Permissions
+        map.put(ModeShapePermissions.CREATE_WORKSPACE, WEBAC_MODE_WRITE);
+        map.put(ModeShapePermissions.DELETE_WORKSPACE, WEBAC_MODE_WRITE);
+        map.put(ModeShapePermissions.REGISTER_NAMESPACE, WEBAC_MODE_WRITE);
+        map.put(ModeShapePermissions.REGISTER_TYPE, WEBAC_MODE_WRITE);
+        map.put(ModeShapePermissions.REMOVE, WEBAC_MODE_WRITE);
+        map.put(ModeShapePermissions.REMOVE_CHILD_NODES, WEBAC_MODE_WRITE);
+        map.put(ModeShapePermissions.RESTORE, WEBAC_MODE_WRITE);
+        map.put(ModeShapePermissions.SET_PROPERTY, WEBAC_MODE_WRITE);
+        // WEBAC_MODE_CONTROL Permissions
+        map.put(ModeShapePermissions.MODIFY_ACCESS_CONTROL, WEBAC_MODE_CONTROL);
+        map.put(ModeShapePermissions.READ_ACCESS_CONTROL, WEBAC_MODE_CONTROL);
         actionsMap = unmodifiableMap(map);
     }
 
