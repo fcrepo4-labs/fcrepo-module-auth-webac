@@ -28,7 +28,6 @@ import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESS_CONTROL_VALUE;
 
 import java.net.URI;
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,7 +45,6 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -60,6 +58,10 @@ import org.fcrepo.kernel.modeshape.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.modeshape.rdf.impl.PropertiesRdfContext;
 import org.modeshape.jcr.value.Path;
 
+/**
+ * @author acoburn
+ * @since 9/3/15
+ */
 class WebACAccessRolesProvider implements AccessRolesProvider {
 
     @Override
@@ -139,7 +141,7 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
 
     final Predicate<Property> isAclPredicate =
          p -> !p.isAnon() && p.getNameSpace().startsWith(WEBAC_NAMESPACE_VALUE);
-    
+
     private List<WebACAuthorization> getAuthorizations(final Node node, final String location) {
         final List<WebACAuthorization> authorizations = new ArrayList<>();
         final Model model = createDefaultModel();
@@ -150,7 +152,7 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
                 new DefaultIdentifierTranslator(node.getSession());
 
             final List<String> EMPTY = Collections.unmodifiableList(new ArrayList<>());
-            
+
             resource.getChildren().forEachRemaining(child -> {
                 if (child.getTypes().contains(WEBAC_AUTHORIZATION)) {
                     final Map<String, List<String>> tripleMap = new HashMap<>();
@@ -161,13 +163,15 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
                              if (t.getObject().isURI()) {
                                 tripleMap.get(t.getPredicate().getURI()).add(t.getObject().getURI());
                              } else if (t.getObject().isLiteral()) {
-                                tripleMap.get(t.getPredicate().getURI()).add(t.getObject().getLiteralValue().toString());
+                                tripleMap.get(t.getPredicate().getURI()).add(
+                                    t.getObject().getLiteralValue().toString());
                              }
                          });
                     authorizations.add(new WebACAuthorizationImpl(
                                 tripleMap.getOrDefault(WEBAC_AGENT_VALUE, EMPTY),
                                 tripleMap.getOrDefault(WEBAC_AGENT_CLASS_VALUE, EMPTY),
-                                tripleMap.getOrDefault(WEBAC_MODE_VALUE, EMPTY).stream().map(URI::create).collect(Collectors.toList()),
+                                tripleMap.getOrDefault(WEBAC_MODE_VALUE, EMPTY).stream()
+                                            .map(URI::create).collect(Collectors.toList()),
                                 tripleMap.getOrDefault(WEBAC_ACCESSTO_VALUE, EMPTY),
                                 tripleMap.getOrDefault(WEBAC_ACCESSTO_CLASS_VALUE, EMPTY)));
                 }

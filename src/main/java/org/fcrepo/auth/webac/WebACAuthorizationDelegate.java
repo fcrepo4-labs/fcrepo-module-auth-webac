@@ -16,7 +16,6 @@
 package org.fcrepo.auth.webac;
 
 import static org.fcrepo.auth.webac.URIConstants.FOAF_AGENT_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESS_CONTROL;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_APPEND;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_READ;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_WRITE;
@@ -51,8 +50,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @since Aug 24, 2015
  */
 public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelegate {
-
-    public static final String EVERYONE_NAME = "EVERYONE";
 
     /**
      * Class-level logger.

@@ -22,6 +22,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+/**
+ * @author acoburn
+ * @since 9/3/15
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class WebACAccessRolesProviderTest {
 
