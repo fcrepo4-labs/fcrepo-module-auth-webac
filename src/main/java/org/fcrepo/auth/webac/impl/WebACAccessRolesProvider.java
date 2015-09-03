@@ -16,8 +16,15 @@
 package org.fcrepo.auth.webac.impl;
 
 import static com.hp.hpl.jena.rdf.model.ModelFactory.createDefaultModel;
-import static org.fcrepo.auth.webac.URIConstants.*;
 import static org.fcrepo.kernel.api.utils.UncheckedFunction.uncheck;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_NAMESPACE_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_AUTHORIZATION;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESSTO_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESSTO_CLASS_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_AGENT_CLASS_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_AGENT_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESS_CONTROL_VALUE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.URI;
@@ -60,7 +67,6 @@ import com.hp.hpl.jena.rdf.model.Resource;
  * @since 9/3/15
  */
 class WebACAccessRolesProvider implements AccessRolesProvider {
-
 
     private static final Logger LOGGER = getLogger(WebACAccessRolesProvider.class);
 

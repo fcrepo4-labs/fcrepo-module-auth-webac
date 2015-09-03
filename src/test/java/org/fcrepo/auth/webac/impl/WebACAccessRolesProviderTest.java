@@ -344,7 +344,6 @@ public class WebACAccessRolesProviderTest {
         assertTrue("The agent should be able to write", roles.get(agent2).contains(WEBAC_MODE_READ_VALUE));
     }
 
-    @Test
     public void acl05Test() throws RepositoryException {
         final String agent1 = "http://xmlns.com/foaf/0.1/Agent";
         final String agent2 = "Admins";
