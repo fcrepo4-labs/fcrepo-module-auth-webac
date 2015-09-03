@@ -1,7 +1,7 @@
 # fcrepo-module-auth-webac
 WebAC Authorization Delegate Module for the Fedora 4 Repository. This is an implementation of the W3C's WebAccessControl draft specification at: [https://www.w3.org/wiki/WebAccessControl](https://www.w3.org/wiki/WebAccessControl).
 
-This modules enables an ACL based access control to the fedora repository. Each protected resource should have a ACL file associated with it either directly or via an ancestor. The ACL file defines authorization based on three entities: 1) who has access, 2) what are the access permissions, and 3) to which resource. Please refer the above W3C specification for the ontology of the ACL RDF file.
+This module enables an ACL based access control to the fedora repository. Each protected resource should have a ACL file associated with it either directly or via an ancestor. The ACL file defines authorization based on three entities: 1) who has access, 2) what are the access permissions, and 3) to which resource. Please refer the above W3C specification for the ontology of the ACL RDF file.
 
 ### Fedora 4 WebAC documentation
 [https://wiki.duraspace.org/display/FEDORA4x/WebAC+Authorization+Delegate](https://wiki.duraspace.org/display/FEDORA4x/WebAC+Authorization+Delegate)
