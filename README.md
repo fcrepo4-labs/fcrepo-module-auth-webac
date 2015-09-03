@@ -9,4 +9,4 @@ This module enables an ACL based access control to the Fedora repository. Each p
 ### Deployment and Configuration
 The [fcrepo-webapp-plus](https://github.com/fcrepo4-exts/fcrepo-webapp-plus) provides a convenient option to build the deployable Fedora web application that is bundled with the WebAC module. Refer to the [fcrepo-webapp-plus README](https://github.com/fcrepo4-exts/fcrepo-webapp-plus/blob/master/README.md) for instructions. 
 
-The "Example Scenarios" section in the [WebAC Authorization Delegate wiki page](https://wiki.duraspace.org/display/FEDORA4x/WebAC+Authorization+Delegate) has configuration instructions for some of the common authorization scenarios.
+The "Example Scenarios" section in the [WebAC Authorization Delegate wiki page](https://wiki.duraspace.org/display/FEDORA4x/WebAC+Authorization+Delegate#WebACAuthorizationDelegate-ExampleScenarios) has configuration instructions for some of the common authorization scenarios.
