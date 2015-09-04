@@ -69,6 +69,9 @@ public class WebACAccessRolesProviderTest {
     private Node mockNode;
 
     @Mock
+    private Node mockParentNode;
+
+    @Mock
     private Session mockSession;
 
     @Mock
@@ -76,6 +79,9 @@ public class WebACAccessRolesProviderTest {
 
     @Mock
     private FedoraResource mockResource;
+
+    @Mock
+    private FedoraResource mockParentResource;
 
     @Mock
     private FedoraResource mockAclResource;
@@ -99,8 +105,64 @@ public class WebACAccessRolesProviderTest {
         when(mockNode.getSession()).thenReturn(mockSession);
 
         when(mockResource.getNode()).thenReturn(mockNode);
+        when(mockNode.getDepth()).thenReturn(0);
         when(mockResource.hasProperty(WEBAC_ACCESS_CONTROL_VALUE)).thenReturn(true);
         when(mockResource.getProperty(WEBAC_ACCESS_CONTROL_VALUE)).thenReturn(mockProperty);
+    }
+
+    @Test
+    public void noAclTest() throws RepositoryException {
+        final String accessTo = "http://localhost:8080/rest/dark/archive/sunshine";
+
+        when(mockResource.getPath()).thenReturn(accessTo);
+        when(mockResource.hasProperty(WEBAC_ACCESS_CONTROL_VALUE)).thenReturn(false);
+        when(mockResource.getContainer()).thenReturn(mockParentResource);
+        when(mockParentResource.hasProperty(WEBAC_ACCESS_CONTROL_VALUE)).thenReturn(false);
+        when(mockParentResource.getNode()).thenReturn(mockParentNode);
+        when(mockNode.getDepth()).thenReturn(1);
+        when(mockParentNode.getDepth()).thenReturn(0);
+
+        final Map<String, List<String>> roles = roleProvider.getRoles(mockNode, true);
+
+        assertTrue("There should be no agents in the roles map", roles.isEmpty());
+    }
+
+    @Test
+    public void acl01ParentTest() throws RepositoryException {
+        final String agent = "smith123";
+        final String accessTo = "http://localhost:8080/rest/webacl_box1";
+        final String acl = "/acls/01";
+        final String auth = acl + "/authorization.ttl";
+
+        when(mockResource.getPath()).thenReturn(accessTo);
+        when(mockResource.hasProperty(WEBAC_ACCESS_CONTROL_VALUE)).thenReturn(false);
+        when(mockResource.getContainer()).thenReturn(mockParentResource);
+        when(mockResource.getPath()).thenReturn(accessTo + "/foo");
+        when(mockNode.getDepth()).thenReturn(1);
+
+        when(mockParentResource.hasProperty(WEBAC_ACCESS_CONTROL_VALUE)).thenReturn(true);
+        when(mockParentResource.getNode()).thenReturn(mockParentNode);
+        when(mockParentResource.getProperty(WEBAC_ACCESS_CONTROL_VALUE)).thenReturn(mockProperty);
+        when(mockParentResource.getPath()).thenReturn(accessTo);
+        when(mockParentNode.getDepth()).thenReturn(0);
+
+        when(mockProperty.getString()).thenReturn(acl);
+        when(mockNodeService.find(mockSession, acl)).thenReturn(mockAclResource);
+        when(mockAclResource.getPath()).thenReturn(acl);
+
+        when(mockAuthorizationResource1.getTypes()).thenReturn(Arrays.asList(WEBAC_AUTHORIZATION));
+        when(mockAuthorizationResource1.getPath()).thenReturn(auth);
+        when(mockAuthorizationResource1.getTriples(anyObject(),
+                    eq(PropertiesRdfContext.class))).thenReturn(getRdfStreamFromResource(auth, TTL));
+
+        when(mockAclResource.getChildren()).thenReturn(Arrays.asList(mockAuthorizationResource1).iterator());
+
+        final Map<String, List<String>> roles = roleProvider.getRoles(mockNode, true);
+
+        assertEquals("There should be exactly one agent in the role map", 1, roles.size());
+        assertEquals("The agent should have exactly two modes", 2, roles.get(agent).size());
+        assertTrue("The agent should be able to read", roles.get(agent).contains(WEBAC_MODE_READ_VALUE));
+        assertTrue("The agent should be able to write", roles.get(agent).contains(WEBAC_MODE_WRITE_VALUE));
     }
 
     @Test

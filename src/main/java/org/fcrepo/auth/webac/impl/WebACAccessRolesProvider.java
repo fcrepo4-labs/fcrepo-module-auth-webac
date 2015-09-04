@@ -41,7 +41,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -73,8 +72,7 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
     private NodeService nodeService;
 
     @Override
-    public void postRoles(final Node node, final Map<String, Set<String>> data)
-            throws RepositoryException {
+    public void postRoles(final Node node, final Map<String, Set<String>> data) throws RepositoryException {
         throw new UnsupportedOperationException("postRoles() is not implemented");
     }
 
@@ -253,14 +251,17 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
             if (resource.hasProperty(WEBAC_ACCESS_CONTROL_VALUE)) {
                 return Optional.of(
                         Pair.of(
-                            new URI(resource.getProperty(WEBAC_ACCESS_CONTROL_VALUE).getString()),
+                            URI.create(resource.getProperty(WEBAC_ACCESS_CONTROL_VALUE).getString()),
                             resource));
             } else if (resource.getNode().getDepth() == 0) {
+                LOGGER.debug("No ACLs defined on this node or in parent hierarchy");
                 return Optional.empty();
             } else {
+                LOGGER.trace("Checking parent resource for ACL. No ACL found at {}", resource.getPath());
                 return getEffectiveAcl(resource.getContainer());
             }
-        } catch (final Exception ex) {
+        } catch (final RepositoryException ex) {
+            LOGGER.debug("Exception finding effective ACL: {}", ex);
             return Optional.empty();
         }
     }
