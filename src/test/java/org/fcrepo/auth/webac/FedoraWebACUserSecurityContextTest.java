@@ -15,19 +15,29 @@
  */
 package org.fcrepo.auth.webac;
 
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_READ_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_WRITE_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_APPEND_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_CONTROL_VALUE;
+
 import java.security.Principal;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.fcrepo.auth.common.FedoraAuthorizationDelegate;
+import org.fcrepo.auth.common.FedoraUserSecurityContext;
 
+import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  * @author mohideen
  * @since 9/1/15.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class FedoraWebACUserSecurityContextTest {
 
     @Mock
@@ -39,6 +49,13 @@ public class FedoraWebACUserSecurityContextTest {
 
     @Test
     public void testHasRole() {
+        final FedoraUserSecurityContext context = new FedoraWebACUserSecurityContext(this.principal, this.fad);
+        Assert.assertTrue(context.hasRole(WEBAC_MODE_READ_VALUE));
+        Assert.assertTrue(context.hasRole(WEBAC_MODE_WRITE_VALUE));
+        Assert.assertTrue(context.hasRole(WEBAC_MODE_APPEND_VALUE));
+        Assert.assertTrue(context.hasRole(WEBAC_MODE_CONTROL_VALUE));
+        Assert.assertFalse(context.hasRole(null));
+        Assert.assertFalse(context.hasRole("other"));
     }
 
 }
