@@ -33,7 +33,7 @@ import java.util.Set;
 
 import javax.jcr.Session;
 
-import org.fcrepo.auth.common.FedoraUserSecurityContext;
+//import org.fcrepo.auth.common.FedoraUserSecurityContext;
 import org.fcrepo.auth.roles.common.AbstractRolesAuthorizationDelegate;
 import org.fcrepo.auth.roles.common.AccessRolesProvider;
 
@@ -140,10 +140,10 @@ public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         return EVERYONE;
     }
 
-    @Override
-    public FedoraUserSecurityContext getFedoraUserSecurityContext(final Principal userPrincipal) {
-        return new FedoraWebACUserSecurityContext(userPrincipal, this);
-    }
+    //@Override
+    //public FedoraUserSecurityContext getFedoraUserSecurityContext(final Principal userPrincipal) {
+        //return new FedoraWebACUserSecurityContext(userPrincipal, this);
+    //}
 
     /**
      * A convenience method for converting an array of actions to a List<URI> structure.
