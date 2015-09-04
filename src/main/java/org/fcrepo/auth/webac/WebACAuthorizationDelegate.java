@@ -31,13 +31,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
 import javax.jcr.Session;
 
 import org.fcrepo.auth.common.FedoraUserSecurityContext;
 import org.fcrepo.auth.roles.common.AbstractRolesAuthorizationDelegate;
 import org.fcrepo.auth.roles.common.AccessRolesProvider;
-import org.fcrepo.kernel.api.services.NodeService;
 
 import org.modeshape.jcr.ModeShapePermissions;
 import org.slf4j.Logger;
@@ -75,9 +73,6 @@ public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         }
 
     };
-
-    @Inject
-    private NodeService nodeService;
 
     @Autowired
     private AccessRolesProvider accessRolesProvider;
