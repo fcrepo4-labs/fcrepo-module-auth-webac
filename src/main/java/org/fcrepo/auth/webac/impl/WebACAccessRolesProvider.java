@@ -16,15 +16,8 @@
 package org.fcrepo.auth.webac.impl;
 
 import static com.hp.hpl.jena.rdf.model.ModelFactory.createDefaultModel;
+import static org.fcrepo.auth.webac.URIConstants.*;
 import static org.fcrepo.kernel.api.utils.UncheckedFunction.uncheck;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_NAMESPACE_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_AUTHORIZATION;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESSTO_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESSTO_CLASS_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_AGENT_CLASS_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_AGENT_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESS_CONTROL_VALUE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.URI;
@@ -45,10 +38,6 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.Property;
-import com.hp.hpl.jena.rdf.model.Resource;
-import org.apache.commons.lang3.tuple.Pair;
 import org.fcrepo.auth.roles.common.AccessRolesProvider;
 import org.fcrepo.auth.webac.WebACAuthorization;
 import org.fcrepo.kernel.api.identifiers.IdentifierConverter;
@@ -56,15 +45,22 @@ import org.fcrepo.kernel.api.models.FedoraResource;
 import org.fcrepo.kernel.api.services.NodeService;
 import org.fcrepo.kernel.modeshape.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.modeshape.rdf.impl.PropertiesRdfContext;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.modeshape.jcr.value.Path;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
 
 /**
  * @author acoburn
  * @since 9/3/15
  */
 class WebACAccessRolesProvider implements AccessRolesProvider {
+
 
     private static final Logger LOGGER = getLogger(WebACAccessRolesProvider.class);
 
