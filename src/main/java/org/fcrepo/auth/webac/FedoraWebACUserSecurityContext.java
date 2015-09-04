@@ -57,9 +57,8 @@ public class FedoraWebACUserSecurityContext extends FedoraUserSecurityContext {
      * @see org.modeshape.jcr.security.SecurityContext#hasRole(String)
      */
     @Override
-    public final boolean hasRole(final String roleName) {
+    public boolean hasRole(final String roleName) {
         LOGGER.debug("Checking hasRole({})", roleName);
-
         if (WEBAC_MODE_READ_VALUE.equals(roleName)) {
             return true;
         } else if (WEBAC_MODE_WRITE_VALUE.equals(roleName)) {
@@ -69,7 +68,7 @@ public class FedoraWebACUserSecurityContext extends FedoraUserSecurityContext {
         } else if (WEBAC_MODE_CONTROL_VALUE.equals(roleName)) {
             return true;
         }
-        return false;
+        return super.hasRole(roleName);
     }
 
 }
