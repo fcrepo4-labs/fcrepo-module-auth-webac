@@ -49,6 +49,7 @@ import javax.jcr.Session;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
+import org.apache.commons.lang3.tuple.Pair;
 import org.fcrepo.auth.roles.common.AccessRolesProvider;
 import org.fcrepo.auth.webac.WebACAuthorization;
 import org.fcrepo.kernel.api.identifiers.IdentifierConverter;
@@ -74,12 +75,12 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
     @Override
     public void postRoles(final Node node, final Map<String, Set<String>> data)
             throws RepositoryException {
-        throw new RuntimeException("postRoles() is not implemented");
+        throw new UnsupportedOperationException("postRoles() is not implemented");
     }
 
     @Override
     public void deleteRoles(final Node node) throws RepositoryException {
-        throw new RuntimeException("deleteRoles() is not implemented");
+        throw new UnsupportedOperationException("deleteRoles() is not implemented");
     }
 
     @Override
@@ -93,24 +94,48 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
         return getAgentRoles(nodeService.cast(node));
     }
 
+    /**
+     *  For a given FedoraResource, get a mapping of acl:agent values to acl:mode values.
+     */
     private Map<String, List<String>> getAgentRoles(final FedoraResource resource) {
         LOGGER.debug("Getting agent roles for: {}", resource.getPath());
-        final List<URI> rdfTypes = resource.getTypes();
-        final Optional<URI> effectiveAcl = getEffectiveAcl(resource);
+
+        // Get the effective ACL by searching the target node and any ancestors.
+        final Optional<Pair<URI, FedoraResource>> effectiveAcl = getEffectiveAcl(resource);
+
+        // Construct a list of acceptable acl:accessTo values for the target resource.
         final List<String> resourcePaths = new ArrayList<>();
         resourcePaths.add(resource.getPath());
+        // Construct a list of acceptable acl:accessToClass values for the target resource.
+        final List<URI> rdfTypes = resource.getTypes();
 
-        // TODO -- add resource path for node with effective ACL
-        //      -- return a tuple from the getEffectiveAcl or something
+        // Add the resource location and types of the ACL-bearing parent,
+        // if present and if different than the target resource.
+        effectiveAcl
+            .map(x -> x.getRight())
+            .filter(x -> !x.getPath().equals(resource.getPath()))
+            .ifPresent(x -> {
+                resourcePaths.add(x.getPath());
+                rdfTypes.addAll(x.getTypes());
+            });
 
+        // Create a function to check acl:accessTo, scoped to the given resourcePaths
         final Predicate<WebACAuthorization> checkAccessTo = accessTo.apply(resourcePaths);
-        final Predicate<WebACAuthorization> checkAccessToClass =
-            accessToClass.apply(resource.getTypes().stream().map(URI::toString).collect(Collectors.toList()));
 
+        // Create a function to check acl:accessToClass, scoped to the given rdf:type values;
+        // but transform the URIs to Strings first.
+        final Predicate<WebACAuthorization> checkAccessToClass =
+            accessToClass.apply(rdfTypes.stream().map(URI::toString).collect(Collectors.toList()));
+
+        // Read the effective Acl and return a list of acl:Authorization statements
         final List<WebACAuthorization> authorizations = effectiveAcl
-                .map(uncheck(x -> getAuthorizations(resource.getNode().getSession(), x.toString())))
+                .map(uncheck(x -> getAuthorizations(resource.getNode().getSession(), x.getLeft().toString())))
                 .orElse(new ArrayList<>());
 
+        // Filter the acl:Authorization statements so that they correspond only to statements that apply to
+        // the target (or acl-bearing ancestor) resource path or rdf:type.
+        // Then, assign all acceptable acl:mode values to the relevant acl:agent values: this creates a UNION
+        // of acl:modes for each particular acl:agent.
         final Map<String, Set<String>> effectiveRoles = new HashMap<>();
         authorizations.stream()
             .filter(x -> checkAccessTo.test(x) || checkAccessToClass.test(x))
@@ -125,11 +150,17 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
                     });
             });
 
+        // Transform the effectiveRoles from a Set to a List.
         return effectiveRoles.entrySet().stream()
             .map(x -> new AbstractMap.SimpleEntry<>(x.getKey(), new ArrayList<>(x.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
+    /**
+     *  This is a function for generating a Predicate that filters WebACAuthorizations according
+     *  to whether the given acl:accessToClass values contain any of the rdf:type values provided
+     *  when creating the predicate.
+     */
     private Function<List<String>, Predicate<WebACAuthorization>> accessToClass = uris -> {
         return x -> {
             return uris.stream()
@@ -140,6 +171,11 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
         };
     };
 
+    /**
+     *  This is a function for generating a Predicate that filters WebACAuthorizations according
+     *  to whether the given acl:accessTo values contain any of the target resource values provided
+     *  when creating the predicate.
+     */
     private Function<List<String>, Predicate<WebACAuthorization>> accessTo = uris -> {
         return x -> {
             return uris.stream()
@@ -150,21 +186,34 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
         };
     };
 
+    /**
+     *  A simple predicate for filtering out any non-acl triples.
+     */
     final Predicate<Property> isAclPredicate =
          p -> !p.isAnon() && p.getNameSpace().startsWith(WEBAC_NAMESPACE_VALUE);
 
+    /**
+     *  This function reads a Fedora ACL resource and all of its acl:Authorization children.
+     *  The RDF from each child resource is put into a WebACAuthorization object, and the
+     *  full list is returned.
+     *
+     *  @param session the jcr session used for locating the ACL resource
+     *  @param location the location of the ACL resource
+     *  @return a list of acl:Authorization objects
+     */
     private List<WebACAuthorization> getAuthorizations(final Session session, final String location) {
+
+        final List<String> EMPTY = Collections.unmodifiableList(new ArrayList<>());
         final List<WebACAuthorization> authorizations = new ArrayList<>();
+        final IdentifierConverter<Resource, FedoraResource> translator = new DefaultIdentifierTranslator(session);
         final Model model = createDefaultModel();
 
+        // Find the specified ACL resource
         final FedoraResource resource = nodeService.find(session, location);
 
         LOGGER.debug("Effective ACL: {}", resource.getPath());
 
-        final IdentifierConverter<Resource, FedoraResource> translator = new DefaultIdentifierTranslator(session);
-
-        final List<String> EMPTY = Collections.unmodifiableList(new ArrayList<>());
-
+        // Read each child resource, filtering on acl:Authorization type, keeping only acl-prefixed triples.
         resource.getChildren().forEachRemaining(child -> {
             if (child.getTypes().contains(WEBAC_AUTHORIZATION)) {
                 final Map<String, List<String>> tripleMap = new HashMap<>();
@@ -179,6 +228,7 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
                                 t.getObject().getLiteralValue().toString());
                          }
                      });
+                // Create a WebACAuthorization object from the provided triples.
                 LOGGER.debug("Adding acl:Authorization from {}", child.getPath());
                 authorizations.add(new WebACAuthorizationImpl(
                             tripleMap.getOrDefault(WEBAC_AGENT_VALUE, EMPTY),
@@ -193,14 +243,18 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
     }
 
     /**
-     * Find the effective ACL as a URI. It may or may not exist, and it may or may
-     * not be a fedora resource.
+     * Recursively find the effective ACL as a URI along with the FedoraResource that points to it.
+     * This way, if the effective ACL is pointed to from a parent resource, the child will inherit
+     * any permissions that correspond to access to that parent. This ACL resource may or may not exist,
+     * and it may be external to the fedora repository.
      */
-    private static Optional<URI> getEffectiveAcl(final FedoraResource resource) {
+    private static Optional<Pair<URI, FedoraResource>> getEffectiveAcl(final FedoraResource resource) {
         try {
             if (resource.hasProperty(WEBAC_ACCESS_CONTROL_VALUE)) {
                 return Optional.of(
-                        new URI(resource.getProperty(WEBAC_ACCESS_CONTROL_VALUE).getString()));
+                        Pair.of(
+                            new URI(resource.getProperty(WEBAC_ACCESS_CONTROL_VALUE).getString()),
+                            resource));
             } else if (resource.getNode().getDepth() == 0) {
                 return Optional.empty();
             } else {
@@ -210,5 +264,4 @@ class WebACAccessRolesProvider implements AccessRolesProvider {
             return Optional.empty();
         }
     }
-
 }
