@@ -84,13 +84,10 @@ public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         // WEBAC_MODE_READ Permissions
         map.put(ModeShapePermissions.READ, WEBAC_MODE_READ);
         // WEBAC_MODE_WRITE Permissions
-        map.put(ModeShapePermissions.CREATE_WORKSPACE, WEBAC_MODE_WRITE);
-        map.put(ModeShapePermissions.DELETE_WORKSPACE, WEBAC_MODE_WRITE);
+        map.put(ModeShapePermissions.ADD_NODE, WEBAC_MODE_WRITE);
         map.put(ModeShapePermissions.REGISTER_NAMESPACE, WEBAC_MODE_WRITE);
-        map.put(ModeShapePermissions.REGISTER_TYPE, WEBAC_MODE_WRITE);
         map.put(ModeShapePermissions.REMOVE, WEBAC_MODE_WRITE);
         map.put(ModeShapePermissions.REMOVE_CHILD_NODES, WEBAC_MODE_WRITE);
-        map.put(ModeShapePermissions.RESTORE, WEBAC_MODE_WRITE);
         map.put(ModeShapePermissions.SET_PROPERTY, WEBAC_MODE_WRITE);
         // WEBAC_MODE_CONTROL Permissions
         map.put(ModeShapePermissions.MODIFY_ACCESS_CONTROL, WEBAC_MODE_CONTROL);
