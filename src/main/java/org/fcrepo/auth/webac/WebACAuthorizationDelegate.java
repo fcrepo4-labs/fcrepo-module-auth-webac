@@ -97,18 +97,18 @@ public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelega
             final String[] actions, final Set<String> roles) {
 
         /*
-         * Basically, if any value in the actions Array is NOT also in the roles Set,
-         * the request is denied. Otherwise, e.g. all of the actions values are contained
-         * in the roles set, the request is approved.
+         * If any value in the actions Array is NOT also in the roles Set, the request should be denied.
+         * Otherwise, e.g. all of the actions values are contained in the roles set, the request is approved.
          * 
-         * The logic may seem un-intuitive here. The process is thus:
+         * The logic here may not be immediately obvious. The process is thus:
          *   map: map the modeshape action to a webac action
          *   filter: ALL of these actions MUST exist in the roles Set, so if any action
          *      value does NOT exist in the roles Set, we want to know about that
          *   findFirst: If any value makes it through that filter, it is enough to invalidate
-         *      the request.is enough to invalidate the request.
+         *      the request. This is evaluated lazily, so the first item encountered will
+         *      short-circut the processing of the rest of the stream.
          *   isPresent: this returns true if any value passed through the filter, but we
-         *      actually want to invert that logic.
+         *      actually want to invert that logic, hence the ! at the beginning of the expression.
          */
         final boolean permit = !Arrays.asList(actions).stream()
                  .map(actionMap::get)
