@@ -167,14 +167,12 @@ class WebACRolesProvider implements AccessRolesProvider {
      *  to whether the given acl:accessToClass values contain any of the rdf:type values provided
      *  when creating the predicate.
      */
-    private Function<List<String>, Predicate<WebACAuthorization>> accessToClass = uris -> {
-        return x -> {
-            return uris.stream()
-                       .distinct()
-                       .filter(y -> x.getAccessToClassURIs().contains(y))
-                       .findFirst()
-                       .isPresent();
-        };
+    private Function<List<String>, Predicate<WebACAuthorization>> accessToClass = uris -> x -> {
+        return uris.stream()
+                   .distinct()
+                   .filter(y -> x.getAccessToClassURIs().contains(y))
+                   .findFirst()
+                   .isPresent();
     };
 
     /**
@@ -203,7 +201,6 @@ class WebACRolesProvider implements AccessRolesProvider {
      *  The RDF from each child resource is put into a WebACAuthorization object, and the
      *  full list is returned.
      *
-     *  @param session the jcr session used for locating the ACL resource
      *  @param location the location of the ACL resource
      *  @return a list of acl:Authorization objects
      */
