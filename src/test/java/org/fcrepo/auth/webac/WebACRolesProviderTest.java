@@ -45,6 +45,7 @@ import com.hp.hpl.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.fcrepo.auth.roles.common.AccessRolesProvider;
+import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.api.models.FedoraResource;
 import org.fcrepo.kernel.api.services.NodeService;
 import org.fcrepo.kernel.api.utils.iterators.RdfStream;
@@ -77,6 +78,9 @@ public class WebACRolesProviderTest {
     private Session mockSession;
 
     @Mock
+    private SessionFactory mockSessionFactory;
+
+    @Mock
     private NodeService mockNodeService;
 
     @Mock
@@ -102,9 +106,11 @@ public class WebACRolesProviderTest {
 
         roleProvider = new WebACRolesProvider();
         setField(roleProvider, "nodeService", mockNodeService);
+        setField(roleProvider, "sessionFactory", mockSessionFactory);
 
         when(mockNodeService.cast(mockNode)).thenReturn(mockResource);
         when(mockNode.getSession()).thenReturn(mockSession);
+        when(mockSessionFactory.getInternalSession()).thenReturn(mockSession);
 
         when(mockResource.getNode()).thenReturn(mockNode);
         when(mockNode.getDepth()).thenReturn(0);

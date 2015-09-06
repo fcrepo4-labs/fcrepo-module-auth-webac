@@ -46,6 +46,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.fcrepo.auth.roles.common.AccessRolesProvider;
+import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.api.identifiers.IdentifierConverter;
 import org.fcrepo.kernel.api.models.FedoraResource;
 import org.fcrepo.kernel.api.services.NodeService;
@@ -73,6 +74,9 @@ class WebACRolesProvider implements AccessRolesProvider {
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     @Override
     public void postRoles(final Node node, final Map<String, Set<String>> data) throws RepositoryException {
@@ -131,7 +135,7 @@ class WebACRolesProvider implements AccessRolesProvider {
 
         // Read the effective Acl and return a list of acl:Authorization statements
         final List<WebACAuthorization> authorizations = effectiveAcl
-                .map(uncheck(x -> getAuthorizations(resource.getNode().getSession(), x.getLeft().toString())))
+                .map(uncheck(x -> getAuthorizations(x.getLeft().toString())))
                 .orElse(new ArrayList<>());
 
         // Filter the acl:Authorization statements so that they correspond only to statements that apply to
@@ -203,11 +207,13 @@ class WebACRolesProvider implements AccessRolesProvider {
      *  @param location the location of the ACL resource
      *  @return a list of acl:Authorization objects
      */
-    private List<WebACAuthorization> getAuthorizations(final Session session, final String location) {
+    private List<WebACAuthorization> getAuthorizations(final String location) {
 
+        final Session internalSession = sessionFactory.getInternalSession();
         final List<String> EMPTY = Collections.unmodifiableList(new ArrayList<>());
         final List<WebACAuthorization> authorizations = new ArrayList<>();
-        final IdentifierConverter<Resource, FedoraResource> translator = new DefaultIdentifierTranslator(session);
+        final IdentifierConverter<Resource, FedoraResource> translator =
+                new DefaultIdentifierTranslator(internalSession);
         final Model model = createDefaultModel();
 
         LOGGER.debug("Effective ACL: {}", location);
@@ -215,9 +221,8 @@ class WebACRolesProvider implements AccessRolesProvider {
         // Find the specified ACL resource
 
         if (location.startsWith(FEDORA_INTERNAL_PREFIX)) {
-            LOGGER.debug("ACL Path: {}", location.substring(FEDORA_INTERNAL_PREFIX.length()));
 
-            final FedoraResource resource = nodeService.find(session,
+            final FedoraResource resource = nodeService.find(internalSession,
                     location.substring(FEDORA_INTERNAL_PREFIX.length()));
 
             // Read each child resource, filtering on acl:Authorization type, keeping only acl-prefixed triples.
