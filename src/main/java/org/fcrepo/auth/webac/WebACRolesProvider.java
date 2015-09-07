@@ -156,6 +156,8 @@ class WebACRolesProvider implements AccessRolesProvider {
                     });
             });
 
+        LOGGER.debug("Unfiltered ACL: {}", effectiveRoles);
+
         // Transform the effectiveRoles from a Set to a List.
         return effectiveRoles.entrySet().stream()
             .map(x -> new AbstractMap.SimpleEntry<>(x.getKey(), new ArrayList<>(x.getValue())))
