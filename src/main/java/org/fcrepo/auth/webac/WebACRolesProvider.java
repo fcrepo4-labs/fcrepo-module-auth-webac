@@ -289,7 +289,7 @@ class WebACRolesProvider implements AccessRolesProvider {
                 return getEffectiveAcl(resource.getContainer());
             }
         } catch (final RepositoryException ex) {
-            LOGGER.debug("Exception finding effective ACL: {}", ex);
+            LOGGER.debug("Exception finding effective ACL: {}", ex.getMessage());
             return Optional.empty();
         }
     }
