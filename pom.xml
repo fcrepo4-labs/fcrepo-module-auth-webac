@@ -18,7 +18,7 @@
   <properties>
     <!-- this is used for the scm definition -->
     <project_name>fcrepo-module-auth-webac</project_name>
-    <project_organization>fcrepo4-labs</project_organization>
+    <project_organization>fcrepo4</project_organization>
     <!-- module-specific dependencies -->
     <commons-codec.version>1.6</commons-codec.version>
     <!-- OSGi -->
