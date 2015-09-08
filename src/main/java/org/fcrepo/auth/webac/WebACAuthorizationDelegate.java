@@ -109,16 +109,16 @@ public class WebACAuthorizationDelegate extends AbstractRolesAuthorizationDelega
             final Map<String, List<String>> resourceAccessRoles =
                 accessRolesProvider.getRoles(userSession.getNode(absPath), true);
 
-            final Set<String> effectiveRoles = new HashSet<>();
+            final Set<URI> effectiveRoles = new HashSet<>();
 
             if (resourceAccessRoles.containsKey(agent)) {
                 LOGGER.debug("Applying WebAC rules for user {} with modes {}", agent, resourceAccessRoles.get(agent));
-                effectiveRoles.addAll(resourceAccessRoles.get(agent));
+                resourceAccessRoles.get(agent).stream().forEach(x -> effectiveRoles.add(URI.create(x)));
             } else {
                 for (final String r : roles) {
                     if (resourceAccessRoles.containsKey(r)) {
-                        effectiveRoles.addAll(resourceAccessRoles.get(r));
                         LOGGER.debug("Applying WebAC rules for group {} with modes {}", r, resourceAccessRoles.get(r));
+                        resourceAccessRoles.get(r).stream().forEach(x -> effectiveRoles.add(URI.create(x)));
                     }
                 }
             }
