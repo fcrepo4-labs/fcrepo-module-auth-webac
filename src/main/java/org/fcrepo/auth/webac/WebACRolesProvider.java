@@ -15,15 +15,15 @@
  */
 package org.fcrepo.auth.webac;
 
-import static java.util.Collections.unmodifiableList;
 import static com.hp.hpl.jena.rdf.model.ModelFactory.createDefaultModel;
 import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 import static org.fcrepo.auth.webac.URIConstants.FOAF_AGENT_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.FOAF_MEMBER_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.FOAF_GROUP;
+import static java.util.Collections.unmodifiableList;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESS_CONTROL_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESSTO_CLASS_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESSTO_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESS_CONTROL_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_AGENT_CLASS_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_AGENT_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_AUTHORIZATION;
@@ -35,6 +35,8 @@ import static org.fcrepo.kernel.modeshape.identifiers.NodeResourceConverter.node
 import static org.fcrepo.kernel.modeshape.utils.FedoraTypesUtils.isNonRdfSourceDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -68,9 +70,12 @@ import org.modeshape.jcr.value.Path;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 
 /**
  * @author acoburn
@@ -80,9 +85,13 @@ class WebACRolesProvider implements AccessRolesProvider {
 
     private static final Logger LOGGER = getLogger(WebACRolesProvider.class);
 
+    private static final List<String> EMPTY = unmodifiableList(new ArrayList<>());
+
     private static final String FEDORA_INTERNAL_PREFIX = "info:fedora";
 
-    private static final List<String> EMPTY = unmodifiableList(new ArrayList<>());
+    private static final String ROOT_ACL_PROPERTY = "fcrepo.auth.webac.acl";
+
+    private static final String ROOT_ACL_LOCATION = "/root-acl.rdf";
 
     @Autowired
     private NodeService nodeService;
@@ -151,7 +160,7 @@ class WebACRolesProvider implements AccessRolesProvider {
         // Read the effective Acl and return a list of acl:Authorization statements
         final List<WebACAuthorization> authorizations = effectiveAcl
                 .map(uncheck(x -> getAuthorizations(x.getLeft().toString())))
-                .orElse(new ArrayList<>());
+                .orElseGet(() -> getDefaultAuthorizations());
 
         // Filter the acl:Authorization statements so that they correspond only to statements that apply to
         // the target (or acl-bearing ancestor) resource path or rdf:type.
@@ -272,7 +281,7 @@ class WebACRolesProvider implements AccessRolesProvider {
     /**
      *  A simple predicate for filtering out any non-acl triples.
      */
-    final Predicate<Property> isAclPredicate =
+    static final Predicate<Property> isAclPredicate =
          p -> !p.isAnon() && p.getNameSpace().startsWith(WEBAC_NAMESPACE_VALUE);
 
     /**
@@ -370,6 +379,43 @@ class WebACRolesProvider implements AccessRolesProvider {
         } catch (final RepositoryException ex) {
             LOGGER.debug("Exception finding effective ACL: {}", ex.getMessage());
             return Optional.empty();
+        }
+    }
+
+    public List<WebACAuthorization> getDefaultAuthorizations() {
+        final Map<String, List<String>> aclTriples = new HashMap<>();
+        final List<WebACAuthorization> authorizations = new ArrayList<>();
+
+        getDefaultAcl().listStatements().forEachRemaining(x -> {
+            if (isAclPredicate.test(x.getPredicate())) {
+                final Triple t = x.asTriple();
+                aclTriples.putIfAbsent(t.getPredicate().getURI(), new ArrayList<>());
+                if (t.getObject().isURI()) {
+                    aclTriples.get(t.getPredicate().getURI()).add(t.getObject().getURI());
+                } else if (t.getObject().isLiteral()) {
+                    aclTriples.get(t.getPredicate().getURI()).add(
+                        t.getObject().getLiteralValue().toString());
+                }
+            }
+        });
+
+        authorizations.add(createAuthorizationFromMap(aclTriples));
+
+        return authorizations;
+    }
+
+    private static Model getDefaultAcl() {
+        final String rootAcl = System.getProperty(ROOT_ACL_PROPERTY);
+
+        if (rootAcl != null && new File(rootAcl).isFile()) {
+            LOGGER.debug("Getting Root ACL from file: {}", rootAcl);
+            return RDFDataMgr.loadModel(rootAcl);
+        } else {
+            LOGGER.debug("Getting Root ACL from classpath: {}", ROOT_ACL_LOCATION);
+            final Model model = createDefaultModel();
+            final InputStream is = WebACRolesProvider.class.getResourceAsStream(ROOT_ACL_LOCATION);
+            RDFDataMgr.read(model, is, Lang.TTL);
+            return model;
         }
     }
 }

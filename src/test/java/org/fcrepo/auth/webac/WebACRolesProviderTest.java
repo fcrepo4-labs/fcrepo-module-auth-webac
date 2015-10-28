@@ -20,9 +20,10 @@ import static com.hp.hpl.jena.rdf.model.ModelFactory.createDefaultModel;
 import static org.apache.jena.riot.Lang.TTL;
 import static org.fcrepo.auth.webac.URIConstants.FOAF_GROUP;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESS_CONTROL_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.WEBAC_AUTHORIZATION;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_READ_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_MODE_WRITE_VALUE;
-import static org.fcrepo.auth.webac.URIConstants.WEBAC_AUTHORIZATION;
+import static org.fcrepo.kernel.api.RdfLexicon.REPOSITORY_NAMESPACE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
@@ -534,6 +535,31 @@ public class WebACRolesProviderTest {
         assertEquals("There should be exactly zero agents", 0, roles.size());
     }
 
+    @Test
+    public void noAclTest1() throws RepositoryException {
+        final String agent1 = "http://xmlns.com/foaf/0.1/Agent";
+
+        when(mockResource.getTriples(anyObject(), eq(PropertiesRdfContext.class))).thenReturn(new RdfStream());
+        when(mockResource.getPath()).thenReturn("/");
+        when(mockResource.getTypes()).thenReturn(
+                Arrays.asList(URI.create("http://fedora.info/definitions/v4/webac#Acl")));
+        final Map<String, List<String>> roles = roleProvider.getRoles(mockNode, true);
+
+        assertEquals("There should be exactly one agent", 1, roles.size());
+        assertEquals("The agent should have one mode", 1, roles.get(agent1).size());
+        assertTrue("The agent should be able to read", roles.get(agent1).contains(WEBAC_MODE_READ_VALUE));
+    }
+
+    @Test
+    public void noAclTest2() throws RepositoryException {
+        when(mockResource.getTriples(anyObject(), eq(PropertiesRdfContext.class))).thenReturn(new RdfStream());
+        when(mockResource.getPath()).thenReturn("/");
+        when(mockResource.getTypes()).thenReturn(
+                Arrays.asList(URI.create(REPOSITORY_NAMESPACE + "Fake")));
+        final Map<String, List<String>> roles = roleProvider.getRoles(mockNode, true);
+
+        assertEquals("There should be no agents", 0, roles.size());
+    }
 
     private static RdfStream getRdfStreamFromResource(final String resourcePath, final Lang lang) {
         final Model model = createDefaultModel();

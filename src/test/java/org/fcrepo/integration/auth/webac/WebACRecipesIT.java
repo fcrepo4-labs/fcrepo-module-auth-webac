@@ -394,6 +394,25 @@ public class WebACRecipesIT extends AbstractResourceIT {
     }
 
     @Test
+    public void scenarioNoAcl() throws IOException {
+        final String id = "/rest/" + getRandomUniqueId();
+        final String testObj = ingestObj(id);
+
+        logger.debug("Anonymous can't read");
+        final HttpGet request = getObjMethod(id);
+        try (final CloseableHttpResponse response = execute(request)) {
+            assertEquals(HttpStatus.SC_FORBIDDEN, getStatus(response));
+        }
+
+        logger.debug("Can username 'smith123' read {}", testObj);
+        final HttpGet requestGet1 = getObjMethod(id);
+        setAuth(requestGet1, "smith123");
+        try (final CloseableHttpResponse response = execute(requestGet1)) {
+            assertEquals(HttpStatus.SC_OK, getStatus(response));
+        }
+    }
+
+    @Test
     public void testAccessToRoot() throws IOException {
         final String id = "/rest/" + getRandomUniqueId();
         final String testObj = ingestObj(id);
