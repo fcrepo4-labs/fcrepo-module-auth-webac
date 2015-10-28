@@ -354,7 +354,52 @@ public class WebACRecipesIT extends AbstractResourceIT {
         try (final CloseableHttpResponse response = execute(requestGet4)) {
             assertEquals(HttpStatus.SC_OK, getStatus(response));
         }
+    }
 
+    @Test
+    public void scenario9() throws IOException {
+        final String idPublic = "/rest/anotherCollection/publicObj";
+        final String groups = "/rest/group";
+        final String fooGroup = groups + "/foo";
+        final String testObj = ingestObj("/rest/anotherCollection");
+        final String publicObj = ingestObj(idPublic);
+        final String groupColl = ingestObj(groups);
+
+        final HttpPut request = putObjMethod(fooGroup);
+        setAuth(request, "fedoraAdmin");
+
+        final InputStream file = this.getClass().getResourceAsStream("/acls/09/group.ttl");
+        final InputStreamEntity fileEntity = new InputStreamEntity(file);
+        request.setEntity(fileEntity);
+        request.setHeader("Content-Type", "text/turtle;charset=UTF-8");
+
+        try (final CloseableHttpResponse response = execute(request)) {
+            assertEquals("Didn't get a CREATED response!", CREATED.getStatusCode(), getStatus(response));
+        }
+
+        final String acl9 = ingestAcl("fedoraAdmin", "/acls/09/acl.ttl", "/acls/09/authorization.ttl");
+        linkToAcl(testObj, acl9);
+
+        logger.debug("Person1 can see object " + publicObj);
+        final HttpGet requestGet = getObjMethod(idPublic);
+        setAuth(requestGet, "person1");
+        try (final CloseableHttpResponse response = execute(requestGet)) {
+            assertEquals(HttpStatus.SC_OK, getStatus(response));
+        }
+
+        logger.debug("Person2 can see object " + publicObj);
+        final HttpGet requestGet2 = getObjMethod(idPublic);
+        setAuth(requestGet2, "person2");
+        try (final CloseableHttpResponse response = execute(requestGet2)) {
+            assertEquals(HttpStatus.SC_OK, getStatus(response));
+        }
+
+        logger.debug("Person3 user cannot see object " + publicObj);
+        final HttpGet requestGet3 = getObjMethod(idPublic);
+        setAuth(requestGet3, "person3");
+        try (final CloseableHttpResponse response = execute(requestGet3)) {
+            assertEquals(HttpStatus.SC_FORBIDDEN, getStatus(response));
+        }
     }
 
     @Test

@@ -93,6 +93,9 @@ public class WebACRolesProviderTest {
     private FedoraResource mockAclResource;
 
     @Mock
+    private FedoraResource mockAgentClassResource;
+
+    @Mock
     private FedoraResource mockAuthorizationResource1;
 
     @Mock
@@ -441,6 +444,46 @@ public class WebACRolesProviderTest {
         assertTrue("The agent should be able to read", roles.get(agent1).contains(WEBAC_MODE_READ_VALUE));
     }
 
+    @Test
+    public void acl09Test1() throws RepositoryException {
+        final String agent1 = "person1";
+        final String agent2 = "person2";
+        final String accessTo = "/anotherCollection";
+
+        final String groupResource = "/group/foo";
+        final String acl = "/acls/09";
+        final String auth = acl + "/authorization.ttl";
+        final String group = acl + "/group.ttl";
+
+        when(mockNodeService.find(mockSession, acl)).thenReturn(mockAclResource);
+        when(mockNodeService.find(mockSession, groupResource)).thenReturn(mockAgentClassResource);
+        when(mockProperty.getString()).thenReturn(acl);
+        when(mockAclResource.getPath()).thenReturn(acl);
+        when(mockResource.getPath()).thenReturn(accessTo);
+        when(mockResource.getTypes()).thenReturn(new ArrayList<>());
+        when(mockResource.getTriples(anyObject(), eq(PropertiesRdfContext.class)))
+                .thenReturn(getResourceRdfStream(accessTo, acl));
+
+        when(mockAuthorizationResource1.getTypes()).thenReturn(Arrays.asList(WEBAC_AUTHORIZATION));
+        when(mockAuthorizationResource1.getPath()).thenReturn(auth);
+        when(mockAuthorizationResource1.getTriples(anyObject(),
+                    eq(PropertiesRdfContext.class))).thenReturn(getRdfStreamFromResource(auth, TTL));
+
+        when(mockAgentClassResource.getTypes()).thenReturn(Arrays.asList(WEBAC_AUTHORIZATION));
+        when(mockAgentClassResource.getPath()).thenReturn(groupResource);
+        when(mockAgentClassResource.getTriples(anyObject(),
+                    eq(PropertiesRdfContext.class))).thenReturn(getRdfStreamFromResource(group, TTL));
+
+        when(mockAclResource.getChildren()).thenReturn(
+                Arrays.asList(mockAuthorizationResource1).iterator());
+
+        final Map<String, List<String>> roles = roleProvider.getRoles(mockNode, true);
+
+        assertEquals("There should be exactly two agents", 2, roles.size());
+        assertEquals("The agent should have two modes", 2, roles.get(agent1).size());
+        assertTrue("The agent should be able to read", roles.get(agent1).contains(WEBAC_MODE_READ_VALUE));
+        assertTrue("The agent should be able to write", roles.get(agent1).contains(WEBAC_MODE_WRITE_VALUE));
+    }
 
     private static RdfStream getRdfStreamFromResource(final String resourcePath, final Lang lang) {
         final Model model = createDefaultModel();
