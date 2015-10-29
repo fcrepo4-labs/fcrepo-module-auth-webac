@@ -15,12 +15,13 @@
  */
 package org.fcrepo.auth.webac;
 
+import static java.util.Collections.unmodifiableList;
 import static com.hp.hpl.jena.rdf.model.ModelFactory.createDefaultModel;
 import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
+import static org.apache.jena.riot.Lang.TTL;
 import static org.fcrepo.auth.webac.URIConstants.FOAF_AGENT_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.FOAF_MEMBER_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.FOAF_GROUP;
-import static java.util.Collections.unmodifiableList;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESS_CONTROL_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESSTO_CLASS_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESSTO_VALUE;
@@ -37,6 +38,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -74,8 +76,7 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
+import com.hp.hpl.jena.shared.JenaException;
 
 /**
  * @author acoburn
@@ -83,15 +84,15 @@ import org.apache.jena.riot.RDFDataMgr;
  */
 class WebACRolesProvider implements AccessRolesProvider {
 
+    public static final String ROOT_AUTHORIZATION_PROPERTY = "fcrepo.auth.webac.authorization";
+
     private static final Logger LOGGER = getLogger(WebACRolesProvider.class);
 
     private static final List<String> EMPTY = unmodifiableList(new ArrayList<>());
 
     private static final String FEDORA_INTERNAL_PREFIX = "info:fedora";
 
-    private static final String ROOT_ACL_PROPERTY = "fcrepo.auth.webac.acl";
-
-    private static final String ROOT_ACL_LOCATION = "/root-acl.rdf";
+    private static final String ROOT_AUTHORIZATION_LOCATION = "/root-authorization.rdf";
 
     @Autowired
     private NodeService nodeService;
@@ -405,17 +406,25 @@ class WebACRolesProvider implements AccessRolesProvider {
     }
 
     private static Model getDefaultAcl() {
-        final String rootAcl = System.getProperty(ROOT_ACL_PROPERTY);
+        final String rootAcl = System.getProperty(ROOT_AUTHORIZATION_PROPERTY);
+        final Model model = createDefaultModel();
 
         if (rootAcl != null && new File(rootAcl).isFile()) {
-            LOGGER.debug("Getting Root ACL from file: {}", rootAcl);
-            return RDFDataMgr.loadModel(rootAcl);
-        } else {
-            LOGGER.debug("Getting Root ACL from classpath: {}", ROOT_ACL_LOCATION);
-            final Model model = createDefaultModel();
-            final InputStream is = WebACRolesProvider.class.getResourceAsStream(ROOT_ACL_LOCATION);
-            RDFDataMgr.read(model, is, Lang.TTL);
-            return model;
+            try {
+                LOGGER.debug("Getting root authorization from file: {}", rootAcl);
+                return model.read(rootAcl);
+            } catch (final JenaException ex) {
+                LOGGER.error("Error parsing root authorization file: {}", ex.getMessage());
+            }
         }
+        try (final InputStream is = WebACRolesProvider.class.getResourceAsStream(ROOT_AUTHORIZATION_LOCATION)) {
+            LOGGER.debug("Getting root authorization from classpath: {}", ROOT_AUTHORIZATION_LOCATION);
+            return model.read(is, null, TTL.getName());
+        } catch (final IOException ex) {
+            LOGGER.error("Error reading root authorization file: {}", ex.getMessage());
+        } catch (final JenaException ex) {
+            LOGGER.error("Error parsing root authorization file: {}", ex.getMessage());
+        }
+        return createDefaultModel();
     }
 }

@@ -394,45 +394,31 @@ public class WebACRecipesIT extends AbstractResourceIT {
     }
 
     @Test
-    public void scenarioNoAcl() throws IOException {
-        final String id = "/rest/" + getRandomUniqueId();
-        final String testObj = ingestObj(id);
-
-        logger.debug("Anonymous can't read");
-        final HttpGet request = getObjMethod(id);
-        try (final CloseableHttpResponse response = execute(request)) {
-            assertEquals(HttpStatus.SC_FORBIDDEN, getStatus(response));
-        }
-
-        logger.debug("Can username 'smith123' read {}", testObj);
-        final HttpGet requestGet1 = getObjMethod(id);
-        setAuth(requestGet1, "smith123");
-        try (final CloseableHttpResponse response = execute(requestGet1)) {
-            assertEquals(HttpStatus.SC_OK, getStatus(response));
-        }
-    }
-
-    @Test
     public void testAccessToRoot() throws IOException {
         final String id = "/rest/" + getRandomUniqueId();
         final String testObj = ingestObj(id);
         final String acl = ingestAcl("fedoraAdmin", "/acls/06/acl.ttl", "/acls/06/authorization.ttl");
 
+        logger.debug("Anonymous can't read (no ACL)");
+        final HttpGet requestGet1 = getObjMethod(id);
+        assertEquals(HttpStatus.SC_FORBIDDEN, getStatus(requestGet1));
+
+        logger.debug("Can username 'smith123' read {} (no ACL)", testObj);
+        final HttpGet requestGet2 = getObjMethod(id);
+        setAuth(requestGet2, "smith123");
+        assertEquals(HttpStatus.SC_FORBIDDEN, getStatus(requestGet2));
+
         // Add ACL to root
         linkToAcl("/rest/", acl);
 
-        logger.debug("Anonymous can't read");
-        final HttpGet request = getObjMethod(id);
-        try (final CloseableHttpResponse response = execute(request)) {
-            assertEquals(HttpStatus.SC_FORBIDDEN, getStatus(response));
-        }
+        logger.debug("Anonymous still can't read (ACL present)");
+        final HttpGet requestGet3 = getObjMethod(id);
+        assertEquals(HttpStatus.SC_FORBIDDEN, getStatus(requestGet3));
 
-        logger.debug("Can username 'smith123' read {}", testObj);
-        final HttpGet requestGet1 = getObjMethod(id);
-        setAuth(requestGet1, "smith123");
-        try (final CloseableHttpResponse response = execute(requestGet1)) {
-            assertEquals(HttpStatus.SC_OK, getStatus(response));
-        }
+        logger.debug("Can username 'smith123' read {} (ACL present)", testObj);
+        final HttpGet requestGet4 = getObjMethod(id);
+        setAuth(requestGet4, "smith123");
+        assertEquals(HttpStatus.SC_OK, getStatus(requestGet4));
     }
 
     @Test
