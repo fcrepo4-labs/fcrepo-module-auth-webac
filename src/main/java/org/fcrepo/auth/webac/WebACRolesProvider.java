@@ -17,8 +17,9 @@ package org.fcrepo.auth.webac;
 
 import static java.util.Collections.unmodifiableList;
 import static com.hp.hpl.jena.rdf.model.ModelFactory.createDefaultModel;
-import static org.fcrepo.auth.webac.URIConstants.FOAF_NAMESPACE_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.FOAF_AGENT_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.FOAF_MEMBER_VALUE;
+import static org.fcrepo.auth.webac.URIConstants.FOAF_GROUP;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESSTO_CLASS_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESSTO_VALUE;
 import static org.fcrepo.auth.webac.URIConstants.WEBAC_ACCESS_CONTROL_VALUE;
@@ -213,8 +214,8 @@ class WebACRolesProvider implements AccessRolesProvider {
                         if (x.startsWith(FEDORA_INTERNAL_PREFIX)) {
                             final FedoraResource resource = nodeService.find(
                                 internalSession, x.substring(FEDORA_INTERNAL_PREFIX.length()));
-                            members.addAll(getFoafMembers(translator, resource));
-                        } else if (x.startsWith(FOAF_NAMESPACE_VALUE)) {
+                            members.addAll(getAgentMembers(translator, resource));
+                        } else if (x.equals(FOAF_AGENT_VALUE)) {
                             members.add(x);
                         } else {
                             LOGGER.info("Ignoring agentClass: {}", x);
@@ -229,15 +230,17 @@ class WebACRolesProvider implements AccessRolesProvider {
     }
 
     /**
-     *  Given a FedoraResource, return a list of foaf:member object values.
+     *  Given a FedoraResource, return a list of agents.
      */
-    private Set<String> getFoafMembers(final IdentifierConverter<Resource, FedoraResource> translator,
+    private Set<String> getAgentMembers(final IdentifierConverter<Resource, FedoraResource> translator,
             final FedoraResource resource) {
         final Set<String> members = new HashSet<>();
         final Model model = createDefaultModel();
 
+        final Predicate<Property> isMember = memberTestFromTypes.apply(resource.getTypes());
+
         resource.getTriples(translator, PropertiesRdfContext.class)
-            .filter(p -> isFoafMember.test(model.asStatement(p).getPredicate()))
+            .filter(p -> isMember.test(model.asStatement(p).getPredicate()))
             .forEachRemaining(t -> {
                 if (t.getObject().isURI()) {
                     members.add(t.getObject().getURI());
@@ -252,8 +255,11 @@ class WebACRolesProvider implements AccessRolesProvider {
     /**
      *  A simple predicate for filtering out any non-foaf:member properties
      */
-    final Predicate<Property> isFoafMember =
-        p -> !p.isAnon() && p.getURI().equals(FOAF_MEMBER_VALUE);
+    final Function<List<URI>, Predicate<Property>> memberTestFromTypes = types -> {
+        final Set<URI> typeLookup = new HashSet<>(types);
+        return p -> !p.isAnon() &&
+            typeLookup.contains(FOAF_GROUP) && p.getURI().equals(FOAF_MEMBER_VALUE);
+    };
 
     /**
      *  A simple predicate for filtering out any non-acl triples.
