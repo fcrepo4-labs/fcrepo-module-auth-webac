@@ -126,13 +126,13 @@ public class WebACRolesProviderTest {
 
         when(mockResource.getPath()).thenReturn(accessTo);
         when(mockResource.getContainer()).thenReturn(mockParentResource);
-        when(mockResource.getTriples(anyObject(),
-                    eq(PropertiesRdfContext.class))).thenReturn(new RdfStream());
+        when(mockResource.getTriples(anyObject(), eq(PropertiesRdfContext.class)))
+                .thenReturn(new RdfStream());
         when(mockNode.getDepth()).thenReturn(1);
 
         when(mockParentResource.getNode()).thenReturn(mockParentNode);
-        when(mockParentResource.getTriples(anyObject(),
-                    eq(PropertiesRdfContext.class))).thenReturn(new RdfStream());
+        when(mockParentResource.getTriples(anyObject(), eq(PropertiesRdfContext.class)))
+                .thenReturn(new RdfStream());
         when(mockParentNode.getDepth()).thenReturn(0);
 
         final Map<String, List<String>> roles = roleProvider.getRoles(mockNode, true);
