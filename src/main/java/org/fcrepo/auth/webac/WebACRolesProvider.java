@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,6 +53,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javax.jcr.Node;
@@ -82,7 +84,7 @@ import com.hp.hpl.jena.shared.JenaException;
  * @author acoburn
  * @since 9/3/15
  */
-class WebACRolesProvider implements AccessRolesProvider {
+public class WebACRolesProvider implements AccessRolesProvider {
 
     public static final String ROOT_AUTHORIZATION_PROPERTY = "fcrepo.auth.webac.authorization";
 
@@ -137,6 +139,7 @@ class WebACRolesProvider implements AccessRolesProvider {
         // Construct a list of acceptable acl:accessTo values for the target resource.
         final List<String> resourcePaths = new ArrayList<>();
         resourcePaths.add(FEDORA_INTERNAL_PREFIX + resource.getPath());
+
         // Construct a list of acceptable acl:accessToClass values for the target resource.
         final List<URI> rdfTypes = resource.getTypes();
 
@@ -149,6 +152,16 @@ class WebACRolesProvider implements AccessRolesProvider {
                 resourcePaths.add(FEDORA_INTERNAL_PREFIX + x.getPath());
                 rdfTypes.addAll(x.getTypes());
             });
+
+        // If we get the default Authorization and it contains acl:accessTo properties,
+        // we'll need to do some additional path matching
+        if (!effectiveAcl.isPresent()) {
+            final List<String> fragments = Arrays.asList(resource.getPath().split("/"));
+            resourcePaths.addAll(
+                IntStream.range(1, fragments.size()).boxed()
+                    .map(x -> FEDORA_INTERNAL_PREFIX + "/" + String.join("/", fragments.subList(1, x)))
+                    .collect(Collectors.toList()));
+        }
 
         // Create a function to check acl:accessTo, scoped to the given resourcePaths
         final Predicate<WebACAuthorization> checkAccessTo = accessTo.apply(resourcePaths);
@@ -383,7 +396,7 @@ class WebACRolesProvider implements AccessRolesProvider {
         }
     }
 
-    public List<WebACAuthorization> getDefaultAuthorizations() {
+    private List<WebACAuthorization> getDefaultAuthorizations() {
         final Map<String, List<String>> aclTriples = new HashMap<>();
         final List<WebACAuthorization> authorizations = new ArrayList<>();
 
