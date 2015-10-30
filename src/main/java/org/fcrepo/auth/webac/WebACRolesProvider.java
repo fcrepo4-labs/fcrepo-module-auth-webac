@@ -92,7 +92,7 @@ class WebACRolesProvider implements AccessRolesProvider {
 
     private static final String FEDORA_INTERNAL_PREFIX = "info:fedora";
 
-    private static final String ROOT_AUTHORIZATION_LOCATION = "/root-authorization.rdf";
+    private static final String ROOT_AUTHORIZATION_LOCATION = "/root-authorization.ttl";
 
     @Autowired
     private NodeService nodeService;
