@@ -109,10 +109,9 @@ class WebACRolesProvider implements AccessRolesProvider {
         if (exists.test(path) || path.isRoot()) {
             LOGGER.debug("findRolesForPath: {}", path.getString());
             return nodeService.find(session, path.toString());
-        } else {
-            LOGGER.trace("Path: {} does not exist, checking parent", path.getString());
-            return locateResource(path.getParent(), session);
         }
+        LOGGER.trace("Path: {} does not exist, checking parent", path.getString());
+        return locateResource(path.getParent(), session);
     }
 
     @Override
