@@ -153,14 +153,14 @@ public class WebACRolesProvider implements AccessRolesProvider {
                 rdfTypes.addAll(x.getTypes());
             });
 
-        // If we get the default Authorization and it contains acl:accessTo properties,
-        // we'll need to do some additional path matching
+        // If we fall through to the system/classpath-based Authorization and it
+        // contains any acl:accessTo properties, it is necessary to add each ancestor
+        // path up the node hierarchy, starting at the resource location up to the
+        // root location. This way, the checkAccessTo predicate (below) can be properly
+        // created to match any acl:accessTo values that are part of the getDefaultAuthorization.
+        // This is not relevant if an effectiveAcl is present.
         if (!effectiveAcl.isPresent()) {
-            final List<String> fragments = Arrays.asList(resource.getPath().split("/"));
-            resourcePaths.addAll(
-                IntStream.range(1, fragments.size()).boxed()
-                    .map(x -> FEDORA_INTERNAL_PREFIX + "/" + String.join("/", fragments.subList(1, x)))
-                    .collect(Collectors.toList()));
+            resourcePaths.addAll(getAllPathAncestors(resource.getPath()));
         }
 
         // Create a function to check acl:accessTo, scoped to the given resourcePaths
@@ -201,6 +201,17 @@ public class WebACRolesProvider implements AccessRolesProvider {
         return effectiveRoles.entrySet().stream()
             .map(x -> new AbstractMap.SimpleEntry<>(x.getKey(), new ArrayList<>(x.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    /**
+     * Given a path (e.g. /a/b/c/d) retrieve a list of all ancestor paths.
+     * In this case, that would be a list of "/a/b/c", "/a/b", "/a" and "/".
+     */
+    private List<String> getAllPathAncestors(final String path) {
+        final List<String> segments = Arrays.asList(path.split("/"));
+        return IntStream.range(1, segments.size()).boxed()
+                    .map(x -> FEDORA_INTERNAL_PREFIX + "/" + String.join("/", segments.subList(1, x)))
+                    .collect(Collectors.toList());
     }
 
     /**
