@@ -307,7 +307,7 @@ class WebACRolesProvider implements AccessRolesProvider {
                     child.getTriples(translator, PropertiesRdfContext.class)
                          .filter(p -> isAclPredicate.test(model.asStatement(p).getPredicate()))
                          .forEachRemaining(t -> {
-                             aclTriples.putIfAbsent(t.getPredicate().getURI(), new ArrayList<>());
+                            aclTriples.putIfAbsent(t.getPredicate().getURI(), new ArrayList<>());
                              if (t.getObject().isURI()) {
                                  aclTriples.get(t.getPredicate().getURI()).add(
                                      substringBeforeLast(t.getObject().getURI(), "/" + JCR_CONTENT));
