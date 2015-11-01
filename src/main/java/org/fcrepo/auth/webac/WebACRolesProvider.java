@@ -55,6 +55,7 @@ import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.api.identifiers.IdentifierConverter;
 import org.fcrepo.kernel.api.models.FedoraResource;
 import org.fcrepo.kernel.api.services.NodeService;
+import org.fcrepo.kernel.api.utils.UncheckedPredicate;
 import org.fcrepo.kernel.modeshape.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.modeshape.rdf.impl.PropertiesRdfContext;
 
@@ -98,8 +99,20 @@ class WebACRolesProvider implements AccessRolesProvider {
     @Override
     public Map<String, List<String>> findRolesForPath(final Path absPath, final Session session)
             throws RepositoryException {
-        LOGGER.debug("findRolesForPath: {}", absPath.toString());
-        return getAgentRoles(nodeService.find(session, absPath.toString()));
+        return getAgentRoles(locateResource(absPath, session));
+    }
+
+    private FedoraResource locateResource(final Path path, final Session session) {
+
+        final Predicate<Path> exists = UncheckedPredicate.uncheck(x -> session.nodeExists(x.toString()));
+
+        if (exists.test(path) || path.isRoot()) {
+            LOGGER.debug("findRolesForPath: {}", path.getString());
+            return nodeService.find(session, path.toString());
+        } else {
+            LOGGER.trace("Path: {} does not exist, checking parent", path.getString());
+            return locateResource(path.getParent(), session);
+        }
     }
 
     @Override
