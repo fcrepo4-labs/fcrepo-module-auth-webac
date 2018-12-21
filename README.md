@@ -2,7 +2,7 @@
 
 ---
 
-**NOTE**: This module is is deprecated. 
+**NOTE**: This module is deprecated. 
 
 It is compatible with the Fedora 4.7.x series and will be archived when the 4.7.5 LTS time-period has lapsed.
 
