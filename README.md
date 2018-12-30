@@ -1,5 +1,13 @@
 # fcrepo-module-auth-webac
 
+---
+
+**NOTE**: This module is deprecated. 
+
+It is compatible with the Fedora 4.7.x series and will be archived when the 4.7.5 LTS time-period has lapsed.
+
+---
+
 WebAC Authorization Delegate Module for the Fedora 4 Repository. This is an implementation of the W3C's proposed WebAccessControl at: [https://www.w3.org/wiki/WebAccessControl](https://www.w3.org/wiki/WebAccessControl).
 
 [![Build Status](https://travis-ci.org/fcrepo4/fcrepo-module-auth-webac.png?branch=master)](https://travis-ci.org/fcrepo4/fcrepo-module-auth-webac)
